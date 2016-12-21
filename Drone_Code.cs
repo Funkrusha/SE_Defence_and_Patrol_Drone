@@ -273,11 +273,8 @@ void Idle()
 		StopPatrol();
 		ResetTargets(); //resets any target info
 		
-		if (remote != null)
-		{
-			remote.SetAutoPilotEnabled(false);
-			remote.ClearWaypoints();
-		}
+		remote?.SetAutoPilotEnabled(false);
+		remote?.ClearWaypoints();
 	}
 }
 
@@ -396,20 +393,7 @@ void Follow(MyDetectedEntityInfo grid)
 		modeIndicator.SetValue<Color>("Color", new Color(1f, 0f, 0f));
 
 	StopPatrol(); //Stops the patrole RC Block
-
-	status.Append("Target ID: " + grid.EntityId.ToString()); status.AppendLine();
-	status.Append("Name: " + grid.Name.ToString()); status.AppendLine();
-	status.Append("Type: " + grid.Type.ToString()); status.AppendLine();
-	status.Append("Time: " + grid.TimeStamp.ToString()); status.AppendLine();
-	status.Append("Relationship: " + grid.Relationship.ToString()); status.AppendLine();
-	status.Append("Pos: " + grid.Position.ToString()); status.AppendLine();
-	status.AppendLine();
-	status.Append("Distance: " + Vector3.Distance(grid.Position, Me.GetPosition()).ToString()); status.AppendLine();
-
-	status.AppendLine();
-	status.Append("Status: " + "Following Target");
-	status.AppendLine();
-
+	AppendTargetInformation(grid, "Following Target");
 	//Gets the offset waypoint.
 	Vector3D newPosition = OffsetPos(Me.GetPosition(), grid.Position, followDistance);
 	SetWaypoint("Following", newPosition);
@@ -422,25 +406,24 @@ void AttackTarget(MyDetectedEntityInfo grid)
 		modeIndicator.SetValue<Color>("Color", new Color(1f, 0f, 0f));
 
 	StopPatrol(); //Stops the patrole RC Block
-
-	status.Append("Target ID: " + grid.EntityId.ToString()); status.AppendLine();
-	status.Append("Name: " + grid.Name.ToString()); status.AppendLine();
-	status.Append("Type: " + grid.Type.ToString()); status.AppendLine();
-	status.Append("Time: " + grid.TimeStamp.ToString()); status.AppendLine();
-	status.Append("Relationship: " + grid.Relationship.ToString()); status.AppendLine();
-	status.Append("Pos: " + grid.Position.ToString()); status.AppendLine();
-	status.AppendLine();
-	status.Append("Distance: " + Vector3.Distance(grid.Position, Me.GetPosition()).ToString()); status.AppendLine();
-
-	status.AppendLine();
-	status.Append("Status: " + "Attacking Target");
-	status.AppendLine();
-
+	AppendTargetInformation(grid, "Attacking Target");
 	//Gets the offset waypoint.
 	Vector3D newPosition = OffsetPos(Me.GetPosition(), grid.Position, attackDistance);
 	SetWaypoint("Target", newPosition);
-
 	EnableTurrets(grid);
+}
+
+void AppendTargetInformation(MyDetectedEntityInfo grid, string status) {
+	status.AppendLine("Target ID: " + grid.EntityId.ToString());
+	status.AppendLine("Name: " + grid.Name.ToString());
+	status.AppendLine("Type: " + grid.Type.ToString());
+	status.AppendLine("Time: " + grid.TimeStamp.ToString());
+	status.AppendLine("Relationship: " + grid.Relationship.ToString());
+	status.AppendLine("Pos: " + grid.Position.ToString());
+	status.AppendLine();
+	status.AppendLine("Distance: " + Vector3.Distance(grid.Position, Me.GetPosition()).ToString());
+	status.AppendLine();
+	status.AppendLine($"Status: {status}");
 }
 
 //Scans for targets
@@ -502,25 +485,18 @@ void ResetTargets()
 //Makes sure the target is still valid 
 private bool ValidTarget(MyDetectedEntityInfo grid)
 {
-	if (grid.IsEmpty())
-		return false;
-
 	//Range Checks 
-	if (Vector3D.DistanceSquared(Me.GetPosition(), grid.Position) > maxEnemyRanege * maxEnemyRanege)
+	if (grid.IsEmpty()
+	    || Vector3D.DistanceSquared(Me.GetPosition(), grid.Position) > maxEnemyRanege * maxEnemyRanege
+	    || grid.Relationship != VRage.Game.MyRelationsBetweenPlayerAndBlock.Enemies)
 		return false;
-
-	if (grid.Relationship != VRage.Game.MyRelationsBetweenPlayerAndBlock.Enemies)
-		return false;
-
 	return true;
 }
 
 //Calculates a Vector3D point before point B
 private Vector3D OffsetPos(Vector3D a, Vector3D b, double offset)
 {
-	Vector3D newPos = -offset * Vector3D.Normalize(b - a) + b;
-
-	return newPos;
+	return -offset * Vector3D.Normalize(b - a) + b;
 }
 
 //Sets the waypoint for the main RC Block
@@ -558,30 +534,14 @@ void SetWaypoint(string name, Vector3D pos)
 //Enable all turrets on the grid 
 void EnableTurrets(MyDetectedEntityInfo grid)
 {
-	if (turrets.Count > 0)
-	{
-		for (int i = 0; i < turrets.Count; i += 1)
-		{
-			if (Vector3.DistanceSquared(grid.Position, Me.GetPosition()) < turretRange * turretRange)
-			{
-				turrets[i].GetActionWithName("OnOff_On").Apply(turrets[i]);
-			}
-			else
-				turrets[i].GetActionWithName("OnOff_Off").Apply(turrets[i]);
-		}
-	}
+	var action = Vector3.DistanceSquared(grid.Position, Me.GetPosition()) < turretRange * turretRange ? "OnOff_On" : "OnOff_Off";
+	turrets.ForEach(turret => turre.tApplyAction(action));
 }
 
 //Disable all turrets on the grid 
 void DissableTurrets()
 {
-	if (turrets.Count > 0)
-	{
-		for (int i = 0; i < turrets.Count; i += 1)
-		{
-			turrets[i].GetActionWithName("OnOff_Off").Apply(turrets[i]);
-		}
-	}
+	turrets.ForEach(turret => turret.ApplyAction("OnOff_Off"));
 }
 
 //Outputs the status text to the LCD
