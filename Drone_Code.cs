@@ -50,8 +50,7 @@ void Main(string argument)
 	status = new StringBuilder(); //Resets the Status String
 	errorStatus = 0; //Start in normal status
 
-	status.Append("Home: " + Me.CustomData.ToString());
-	status.AppendLine();
+	status.AppendLine("Home: " + Me.CustomData.ToString());
 
 	//Checks for arguments passed into the block.  
 	if (argument == "reset")
@@ -88,8 +87,7 @@ void Main(string argument)
 	GridTerminalSystem.GetBlocksOfType<IMyRemoteControl>(list);
 	if (list.Count > 0)
 	{
-		status.Append("RC Block Found");
-		status.AppendLine();
+		status.AppendLine("RC Block Found");
 
 		remote = list[0] as IMyRemoteControl;
 		//If Patrol block is the first one found, use next in list
@@ -104,9 +102,7 @@ void Main(string argument)
 		patrol.GetWaypointInfo(patList);
 		if (patList.Count < 1)
 		{
-			status.Append("No Patrol points set.");
-			status.AppendLine();
-
+			status.AppendLine("No Patrol points set.");
 			patrolEnabled = false;
 		}
 
@@ -118,22 +114,15 @@ void Main(string argument)
 
 		//Sets Patrol Status
 		if (patrolEnabled)
-		{
-			status.Append("Patrol System Enabled");
-			status.AppendLine();
-		}
+			status.AppendLine("Patrol System Enabled");
 		else
-		{
-			status.Append("Patrol System Dissabled");
-			status.AppendLine();
-		}
+			status.AppendLine("Patrol System Dissabled");
 	}
 	else
 	{
 		errorStatus = -1;
 
-		status.Append("No RC Block Found: Dead Stick Mode");
-		status.AppendLine();
+		status.AppendLine("No RC Block Found: Dead Stick Mode");
 
 		EchoLCD(status.ToString());
 
@@ -154,24 +143,19 @@ void Main(string argument)
 	{
 		if (sensor.IsFunctional) //If the sensor is functional
 		{
-			status.Append("Sensor Found");
-			status.AppendLine();
+			status.AppendLine("Sensor Found");
 			status.AppendLine();
 		}
 		else
 		{
-			status.Append("Sensor is damaged");
-			status.AppendLine();
-
+			status.AppendLine("Sensor is damaged");
 			errorStatus = 1; //Set Damaged State
 		}
 
 	}
 	else
 	{
-		status.Append("Sensor not found");
-		status.AppendLine();
-
+		status.AppendLine("Sensor not found");
 		errorStatus = 1; //Set Damaged State
 	}
 
@@ -180,9 +164,7 @@ void Main(string argument)
 	GridTerminalSystem.GetBlocksOfType<IMyUserControllableGun>(turrets);
 	if (turrets.Count < 1)
 	{
-		status.Append("Turret damaged or missing");
-		status.AppendLine();
-
+		status.AppendLine("Turret damaged or missing");
 		errorStatus = 1; //Set Damaged State
 	}
 
@@ -264,8 +246,7 @@ void Idle()
 
 		status.AppendLine();
 		status.AppendLine();
-		status.Append("Status: Idle");
-		status.AppendLine();
+		status.AppendLine("Status: Idle");
 
 		StopPatrol();
 		ResetTargets(); //resets any target info
@@ -279,8 +260,7 @@ void Idle()
 void MissingOrDamaged()
 {
 	status.AppendLine();
-	status.Append("--[[Damaged State]]--");
-	status.AppendLine();
+	status.AppendLine("--[[Damaged State]]--");
 
 	ReturnHome();
 }
@@ -297,11 +277,9 @@ void Patrol()
 
 		status.AppendLine();
 		status.AppendLine();
-		status.Append("Status: Patrol");
-		status.AppendLine();
+		status.AppendLine("Status: Patrol");
 
 		remote?.ClearWaypoints(); //Clears waypoints on RC Block
-
 		patrol.SetAutoPilotEnabled(true);
 	}
 	else
@@ -335,10 +313,8 @@ private bool ReturnHome()
 
 	status.AppendLine();
 	status.AppendLine();
-	status.Append("Status: " + "Returning Home");
-	status.AppendLine();
-	status.Append("Distance Home: " + Vector3.Distance(originLoc, Me.GetPosition()).ToString());
-	status.AppendLine();
+	status.AppendLine("Status: " + "Returning Home");
+	status.AppendLine("Distance Home: " + Vector3.Distance(originLoc, Me.GetPosition()).ToString());
 
 	ResetTargets(); //resets any target info
 	StopPatrol(); //In case patrole is still active
@@ -367,10 +343,8 @@ private bool ReturnLastLoc()
 	modeIndicator?.SetValue<Color>("Color", new Color(0.5f, 1f, 0.5f));
 
 	status.AppendLine();
-	status.Append("CK"+ Equals(lastLoc, emptyLoc).ToString());
-	status.AppendLine();
-	status.Append("Status: Returning Last Location");
-	status.AppendLine();
+	status.AppendLine("CK"+ Equals(lastLoc, emptyLoc).ToString());
+	status.AppendLine("Status: Returning Last Location");
 
 	ResetTargets(); //resets any target info
 
@@ -405,12 +379,12 @@ void AttackTarget(MyDetectedEntityInfo grid)
 }
 
 void AppendTargetInformation(MyDetectedEntityInfo grid, string status) {
-	status.AppendLine("Target ID: " + grid.EntityId.ToString());
-	status.AppendLine("Name: " + grid.Name.ToString());
-	status.AppendLine("Type: " + grid.Type.ToString());
-	status.AppendLine("Time: " + grid.TimeStamp.ToString());
-	status.AppendLine("Relationship: " + grid.Relationship.ToString());
-	status.AppendLine("Pos: " + grid.Position.ToString());
+	status.AppendLine($"Target ID: {grid.EntityId}");
+	status.AppendLine($"Name: {grid.Name}");
+	status.AppendLine($"Type: {grid.Type}");
+	status.AppendLine($"Time: {grid.TimeStamp}");
+	status.AppendLine($"Relationship: {grid.Relationship}");
+	status.AppendLine($"Pos: {grid.Position}");
 	status.AppendLine();
 	status.AppendLine("Distance: " + Vector3.Distance(grid.Position, Me.GetPosition()).ToString());
 	status.AppendLine();
@@ -424,8 +398,7 @@ private bool Scan()
 	{
 		List<MyDetectedEntityInfo> targetList = new List<MyDetectedEntityInfo>();
 		sensor.DetectedEntities(targetList);
-		status.Append("Found by Sensor: " + targetList.Count.ToString());
-		status.AppendLine();
+		status.AppendLine($"Found by Sensor: {targetList.Count}");
 
 		double detectedGridDist = -1;
 		double distHolder = 0;
@@ -449,15 +422,13 @@ private bool Scan()
 		//if target found then set target grid
 		if(foundOne)
 		{
-			status.Append("Target Locked");
-			status.AppendLine();
+			status.AppendLine("Target Locked");
 			targetGrid = gridHolder;
 			return true;
 		}
 	   	else
 		{
-			status.Append("No valid targets found.");
-			status.AppendLine();
+			status.AppendLine("No valid targets found.");
 			return false;
 		}
 	}
@@ -512,10 +483,8 @@ void SetWaypoint(string name, Vector3D pos)
 		remote.SetAutoPilotEnabled(true);
 
 		status.AppendLine();
-		status.Append("Waypoint Set. Distance: " + Vector3.Distance(pos, Me.GetPosition()).ToString());
-		status.AppendLine();
-		status.Append("Waypoint Position: " + pos.ToString());
-		status.AppendLine();
+		status.AppendLine("Waypoint Set. Distance: " + Vector3.Distance(pos, Me.GetPosition()).ToString());
+		status.AppendLine("Waypoint Position: " + pos.ToString());
 	}
 	else
 		errorStatus = -1;
