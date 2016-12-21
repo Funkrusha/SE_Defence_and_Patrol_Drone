@@ -81,10 +81,7 @@ void Main(string argument)
 	if (!patrolOveride)
 	{
 		patrol = (IMyRemoteControl)GridTerminalSystem.GetBlockWithName(strPatrol);
-		if (patrol == null)
-			patrolEnabled = false;
-		else
-			patrolEnabled = true;
+		patrolEnabled = patrol != null;
 	}
 
 	//Sets the main RC Block 
@@ -191,11 +188,11 @@ void Main(string argument)
 
 	//Ammo Check
 	bool hasAmmo = false;
-	for (int i = 0; i < turrets.Count; i += 1)
-	{
-		if (turrets[i].HasInventory() && turrets[i].GetInventory(0).IsItemAt(0))
-			hasAmmo = true;
-	}
+	turrets.ForEach(turret => {
+		if (turret.HasInventory() && turret.GetInventory(0).IsItemAt(0))
+			hasAmmo = true;	
+	});
+
 	//If no Ammo then return home
 	if(!hasAmmo)
 	{
@@ -303,8 +300,7 @@ void Patrol()
 		status.Append("Status: Patrol");
 		status.AppendLine();
 
-		if (remote != null)
-			remote.ClearWaypoints(); //Clears waypoints on RC Block
+		remote?.ClearWaypoints(); //Clears waypoints on RC Block
 
 		patrol.SetAutoPilotEnabled(true);
 	}
@@ -320,8 +316,7 @@ void StopPatrol()
 {
 	if (patrolEnabled)
 	{
-		if (patrol != null)
-			patrol.SetAutoPilotEnabled(false);
+		patrol?.SetAutoPilotEnabled(false);
 		
 		if (Equals(lastLoc, emptyLoc))
 			lastLoc = Me.GetPosition();
@@ -336,8 +331,7 @@ private bool ReturnHome()
 		return false;
 
 	//indicator light
-	if (modeIndicator != null)
-		modeIndicator.SetValue<Color>("Color", new Color(0f, 1f, 0f));
+	modeIndicator?.SetValue<Color>("Color", new Color(0f, 1f, 0f));
 
 	status.AppendLine();
 	status.AppendLine();
@@ -369,9 +363,8 @@ private bool ReturnLastLoc()
 	}
 	
 	patrol.SetAutoPilotEnabled(false);
-	
-	if (modeIndicator != null)
-		modeIndicator.SetValue<Color>("Color", new Color(0.5f, 1f, 0.5f));
+
+	modeIndicator?.SetValue<Color>("Color", new Color(0.5f, 1f, 0.5f));
 
 	status.AppendLine();
 	status.Append("CK"+ Equals(lastLoc, emptyLoc).ToString());
@@ -389,8 +382,7 @@ private bool ReturnLastLoc()
 //Follows the given target
 void Follow(MyDetectedEntityInfo grid)
 {
-	if (modeIndicator != null)
-		modeIndicator.SetValue<Color>("Color", new Color(1f, 0f, 0f));
+	modeIndicator?.SetValue<Color>("Color", new Color(1f, 0f, 0f));
 
 	StopPatrol(); //Stops the patrole RC Block
 	AppendTargetInformation(grid, "Following Target");
@@ -402,8 +394,7 @@ void Follow(MyDetectedEntityInfo grid)
 //follow and attack given target
 void AttackTarget(MyDetectedEntityInfo grid)
 {
-	if (modeIndicator != null)
-		modeIndicator.SetValue<Color>("Color", new Color(1f, 0f, 0f));
+	modeIndicator?.SetValue<Color>("Color", new Color(1f, 0f, 0f));
 
 	StopPatrol(); //Stops the patrole RC Block
 	AppendTargetInformation(grid, "Attacking Target");
@@ -442,19 +433,18 @@ private bool Scan()
 		bool foundOne = false;
 
 		//Finds the closest target
-		for (int i = 0; i < targetList.Count; i += 1)
-		{
-			if (ValidTarget(targetList[i]))
+		targetList.ForEach(target => {
+			if (ValidTarget(target))
 			{
-				distHolder = Vector3D.DistanceSquared(targetList[i].Position, Me.GetPosition());
+				distHolder = Vector3D.DistanceSquared(target.Position, Me.GetPosition());
 				if (detectedGridDist < 0 || distHolder < detectedGridDist)
 				 {
 					detectedGridDist = distHolder;
-					gridHolder = targetList[i];
+					gridHolder = target;
 					foundOne = true;
 				}
 			}
-		}
+		});
 
 		//if target found then set target grid
 		if(foundOne)
@@ -464,7 +454,7 @@ private bool Scan()
 			targetGrid = gridHolder;
 			return true;
 		}
-	   else
+	   	else
 		{
 			status.Append("No valid targets found.");
 			status.AppendLine();
@@ -546,11 +536,8 @@ void DissableTurrets()
 
 //Outputs the status text to the LCD
 void EchoLCD( string text)
-{
-	if (lcd != null)
 	{
-		lcd.WritePublicText(text);
-		lcd.ShowTextureOnScreen();
-		lcd.ShowPublicTextOnScreen();
-	}
+	lcd?.WritePublicText(text);
+	lcd?.ShowTextureOnScreen();
+	lcd?.ShowPublicTextOnScreen();
 }
