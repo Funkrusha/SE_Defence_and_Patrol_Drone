@@ -40,15 +40,21 @@ StringBuilder status = new StringBuilder(); //String Builder for status screen
 List<IMyTerminalBlock> list = new List<IMyTerminalBlock>();
 List<IMyUserControllableGun> turrets = new List<IMyUserControllableGun>();
 
+enum ErrorStatus {
+	DeadStickMode = -1,
+	AllGood = 0,
+	Damaged = 1
+}
+
 //errorStatus = -1 Dead Stick Mode (Do nothing)
 //errorStatus =  0 All good
 //errorStatus =  1 Damaged, but can fly
-int errorStatus = 0;
+ErrorStatus errorStatus = ErrorStatus.AllGood;
 
 void Main(string argument)
 {
 	status = new StringBuilder(); //Resets the Status String
-	errorStatus = 0; //Start in normal status
+	errorStatus = ErrorStatus.AllGood; //Start in normal status
 
 	status.AppendLine("Home: " + Me.CustomData.ToString());
 
@@ -120,7 +126,7 @@ void Main(string argument)
 	}
 	else
 	{
-		errorStatus = -1;
+		errorStatus = ErrorStatus.DeadStickMode;
 
 		status.AppendLine("No RC Block Found: Dead Stick Mode");
 
@@ -149,14 +155,14 @@ void Main(string argument)
 		else
 		{
 			status.AppendLine("Sensor is damaged");
-			errorStatus = 1; //Set Damaged State
+			errorStatus = ErrorStatus.Damaged;
 		}
 
 	}
 	else
 	{
 		status.AppendLine("Sensor not found");
-		errorStatus = 1; //Set Damaged State
+		errorStatus = ErrorStatus.Damaged;
 	}
 
 	//If turrets are destroyed, return back home
@@ -165,7 +171,7 @@ void Main(string argument)
 	if (turrets.Count < 1)
 	{
 		status.AppendLine("Turret damaged or missing");
-		errorStatus = 1; //Set Damaged State
+		errorStatus = ErrorStatus.Damaged;
 	}
 
 	//Ammo Check
@@ -178,14 +184,14 @@ void Main(string argument)
 	//If no Ammo then return home
 	if(!hasAmmo)
 	{
-		errorStatus = 1;
+		errorStatus = ErrorStatus.Damaged;
 		status.AppendLine();
 		status.Append("Turrets out of ammo.");
 		status.AppendLine();
 	}
 
 	//If No Errors then run main AI
-	if (errorStatus == 0)
+	if (errorStatus == ErrorStatus.AllGood)
 	{
 		//Makes sure the Drone does not wonder too far
 		bool tooFar = false;
@@ -487,7 +493,7 @@ void SetWaypoint(string name, Vector3D pos)
 		status.AppendLine("Waypoint Position: " + pos.ToString());
 	}
 	else
-		errorStatus = -1;
+		errorStatus = ErrorStatus.DeadStickMode;
 }
 
 //Enable all turrets on the grid 
@@ -505,7 +511,7 @@ void DissableTurrets()
 
 //Outputs the status text to the LCD
 void EchoLCD( string text)
-	{
+{
 	lcd?.WritePublicText(text);
 	lcd?.ShowTextureOnScreen();
 	lcd?.ShowPublicTextOnScreen();
